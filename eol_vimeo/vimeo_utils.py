@@ -436,7 +436,7 @@ def update_video_vimeo(course_id=None):
                 video.status = 'vimeo_not_found'
                 video.save()
                 update_video_status(video.edx_video_id, 'vimeo_not_found')
-            elif 'upload' not in video_data or video_data['upload']['status'] == 'error':
+            elif video_data['status'] == 'uploading_error' or 'upload' not in video_data or video_data['upload']['status'] == 'error':
                 logger.info('EolVimeo - video was not uploaded correctly, edx_video_id: {}, id_vimeo: {}'.format(video.edx_video_id, video.vimeo_video_id))
                 video.status = 'upload_failed'
                 video.error_description = 'Video no se subio correctamente a Vimeo. '
