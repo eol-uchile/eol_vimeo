@@ -1,36 +1,33 @@
 # -*- coding: utf-8 -*-
+# Python Standard Libraries
 from __future__ import unicode_literals
+from collections import namedtuple
+import datetime
+import json
+import urllib.parse
 
-from mock import patch, Mock
-from django.test import TestCase, Client
-from django.test.client import RequestFactory
+# Installed packages (via pip)
+from django.test import Client
 from django.urls import reverse
-from django.contrib.auth.models import User
-from common.djangoapps.util.testing import UrlResetMixin
-from xmodule.modulestore import ModuleStoreEnum
-from xmodule.modulestore.tests.django_utils import ModuleStoreTestCase
-from xmodule.modulestore.django import modulestore
-from xmodule.modulestore.tests.factories import CourseFactory, ItemFactory
-from common.djangoapps.student.roles import CourseInstructorRole, CourseStaffRole
-from common.djangoapps.student.tests.factories import UserFactory, CourseEnrollmentFactory
-from openedx.core.djangoapps.content.course_overviews.models import CourseOverview
-from capa.tests.response_xml_factory import StringResponseXMLFactory
-from lms.djangoapps.courseware.tests.factories import StudentModuleFactory
-from opaque_keys.edx.keys import CourseKey
-from lms.djangoapps.courseware.courses import get_course_with_access
-from six import text_type
 from django.test.utils import override_settings
 from django.conf import settings
-from collections import namedtuple
-from six.moves import range
-import json
-from . import vimeo_utils, vimeo_task
-import time
+from mock import patch, Mock
 import pytz
-import datetime
-import urllib.parse
-from .models import EolVimeoVideo
+from six import text_type
+
+# Edx dependencies
+from common.djangoapps.student.roles import CourseInstructorRole
+from common.djangoapps.student.tests.factories import UserFactory
+from common.djangoapps.util.testing import UrlResetMixin
 from edxval.api import create_video, create_profile, get_video_info
+from openedx.core.djangoapps.content.course_overviews.models import CourseOverview
+from opaque_keys.edx.keys import CourseKey
+from xmodule.modulestore.tests.django_utils import ModuleStoreTestCase
+from xmodule.modulestore.tests.factories import CourseFactory
+
+# Internal project dependencies
+from . import vimeo_utils, vimeo_task
+from .models import EolVimeoVideo
 
 class TestEolVimeo(UrlResetMixin, ModuleStoreTestCase):
     def setUp(self):

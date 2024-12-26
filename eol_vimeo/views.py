@@ -1,29 +1,20 @@
 # -*- coding: utf-8 -*-
+# Python Standard Libraries
+import logging
 
-
-from django.contrib.auth.models import User
-
-from django.urls import reverse
+# Installed packages (via pip)
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
-from django.conf import settings
+from django.utils import timezone
+
+# Edx dependencies
+from cms.djangoapps.contentstore.views import videos
 from opaque_keys import InvalidKeyError
 from opaque_keys.edx.keys import CourseKey
-import requests
-import json
-import urllib.request
-import urllib.parse
-import urllib.error
-import base64
-from django.views.generic.base import View
-from cms.djangoapps.contentstore.views import videos
+
+# Internal project dependencies
 from eol_vimeo.models import EolVimeoVideo
 from eol_vimeo.vimeo_utils import update_image, validate_course, validate_user
-from django.utils import timezone
-import datetime
-import os
-import sys
 
-import logging
 logger = logging.getLogger(__name__)
 
 def vimeo_callback(request):
