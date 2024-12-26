@@ -769,7 +769,7 @@ class TestEolVimeo(UrlResetMixin, ModuleStoreTestCase):
         video = get_video_info(self.video["edx_video_id"])
         self.assertEqual(video['status'], 'upload_failed')
         self.assertEqual(eolvimeo.status, 'upload_failed')
-        self.assertEqual(eolvimeo.error_description, 'Video no se subio correctamente a Vimeo. status=uploading_error')
+        self.assertEqual(eolvimeo.error_description, 'Video no se subio correctamente a Vimeo. ')
 
     @patch('requests.get')
     @override_settings(EOL_VIMEO_CLIENT_ID='1234567890asdfgh')
