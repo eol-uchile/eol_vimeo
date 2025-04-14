@@ -60,7 +60,7 @@ def upload_vimeo(data, name_folder, domain, course_id):
                 video_info['vimeo_id'] = uri_video.split('/')[-1]
                 if len(video_data) == 0 or 'upload' not in video_data or video_data['upload']['status'] == 'error':
                     video_info['status'] = 'upload_failed'
-                    video_info['message'] = video_info['message'] + 'Video no se subio correctamente a Vimeo. '
+                    video_info['message'] = video_info['message'] + 'Video no se subió correctamente a Vimeo.'
                 else:
                     video_info['status'] = 'vimeo_upload'
             update_video_status(video_info.get('edxVideoId'), video_info['status'])

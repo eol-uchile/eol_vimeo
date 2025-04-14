@@ -227,7 +227,7 @@ class TestEolVimeo(UrlResetMixin, ModuleStoreTestCase):
 
         data = [{'edxVideoId': self.video['edx_video_id'], 'status':'upload_completed', 'message': ''}]
         response = vimeo_task.upload_vimeo(data, settings.EOL_VIMEO_MAIN_FOLDER, 'https://test.test.ts', self.course.id)
-        data2 = [{'edxVideoId': self.video['edx_video_id'], 'status':'upload_failed', 'message': 'Video no se subio correctamente a Vimeo. ', 'vimeo_id':'123456789'}]
+        data2 = [{'edxVideoId': self.video['edx_video_id'], 'status':'upload_failed', 'message': 'Video no se subió correctamente a Vimeo.', 'vimeo_id':'123456789'}]
         self.assertEqual(response, data2)
 
     @patch('requests.put')
@@ -766,7 +766,7 @@ class TestEolVimeo(UrlResetMixin, ModuleStoreTestCase):
         video = get_video_info(self.video["edx_video_id"])
         self.assertEqual(video['status'], 'upload_failed')
         self.assertEqual(eolvimeo.status, 'upload_failed')
-        self.assertEqual(eolvimeo.error_description, 'Video no se subio correctamente a Vimeo. ')
+        self.assertEqual(eolvimeo.error_description, 'Video no se subió correctamente a Vimeo.')
 
     @patch('requests.get')
     @override_settings(EOL_VIMEO_CLIENT_ID='1234567890asdfgh')
@@ -818,7 +818,7 @@ class TestEolVimeo(UrlResetMixin, ModuleStoreTestCase):
         video = get_video_info(self.video["edx_video_id"])
         self.assertEqual(video['status'], 'vimeo_encoding')
         self.assertEqual(eolvimeo.status, 'vimeo_encoding')
-        self.assertEqual(eolvimeo.error_description, 'Vimeo todavia esta procesando el video.')
+        self.assertEqual(eolvimeo.error_description, 'Vimeo todavía está procesando el video.')
 
     @patch('requests.get')
     @override_settings(EOL_VIMEO_CLIENT_ID='1234567890asdfgh')
@@ -872,7 +872,7 @@ class TestEolVimeo(UrlResetMixin, ModuleStoreTestCase):
         video = get_video_info(self.video["edx_video_id"])
         self.assertEqual(video['status'], 'vimeo_encoding')
         self.assertEqual(eolvimeo.status, 'vimeo_encoding')
-        self.assertEqual(eolvimeo.error_description, 'Vimeo todavia esta procesando el video.')
+        self.assertEqual(eolvimeo.error_description, 'Vimeo todavía está procesando el video.')
 
     @patch('requests.get')
     @patch("eol_vimeo.vimeo_utils.get_storage")
@@ -900,7 +900,7 @@ class TestEolVimeo(UrlResetMixin, ModuleStoreTestCase):
         video = get_video_info(self.video["edx_video_id"])
         self.assertEqual(video['status'], 'vimeo_upload')
         self.assertEqual(eolvimeo.status, 'vimeo_upload')
-        self.assertEqual(eolvimeo.error_description, 'Vimeo todavia esta subiendo el video. ')
+        self.assertEqual(eolvimeo.error_description, 'Vimeo todavía está subiendo el video.')
 
     @patch('requests.get')
     @patch("eol_vimeo.vimeo_utils.get_storage")
@@ -987,7 +987,7 @@ class TestEolVimeo(UrlResetMixin, ModuleStoreTestCase):
         video = get_video_info(self.video["edx_video_id"])
         self.assertEqual(video['status'], 'upload_completed_encoding')
         self.assertEqual(eolvimeo.status, 'upload_completed_encoding')
-        self.assertEqual(eolvimeo.error_description, 'upload_completed_encoding, Lleva mas de 2 hrs procesando.')
+        self.assertEqual(eolvimeo.error_description, 'upload_completed_encoding, Lleva más de 2 hrs procesando.')
 
     @patch('requests.get')
     @patch("eol_vimeo.vimeo_utils.get_storage")
@@ -1016,7 +1016,7 @@ class TestEolVimeo(UrlResetMixin, ModuleStoreTestCase):
         video = get_video_info(self.video["edx_video_id"])
         self.assertEqual(video['status'], 'vimeo_encoding')
         self.assertEqual(eolvimeo.status, 'vimeo_encoding')
-        self.assertEqual(eolvimeo.error_description, 'Vimeo todavia puede estar procesando el video.')
+        self.assertEqual(eolvimeo.error_description, 'Vimeo todavía puede estar procesando el video.')
 
     @patch('requests.get')
     @patch("eol_vimeo.vimeo_utils.update_video")
