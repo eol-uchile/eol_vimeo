@@ -1,6 +1,8 @@
 # EOL Vimeo
 
-![https://github.com/eol-uchile/eol_vimeo/actions](https://github.com/eol-uchile/eol_vimeo/workflows/Python%20application/badge.svg) ![Coverage Status](https://github.com/eol-uchile/eol_vimeo/blob/master/coverage-badge.svg)
+![Coverage Status](/coverage-badge.svg)
+
+![https://github.com/eol-uchile/eol_vimeo/actions](https://github.com/eol-uchile/eol_vimeo/workflows/Python%20application/badge.svg) 
 
 Upload videos to Vimeo.
 
@@ -166,8 +168,14 @@ Add this configuration in `LMS` & `CMS` .yml:
 ## TESTS
 **Prepare tests:**
 
-    > cd .github/
-    > docker-compose run cms /openedx/requirements/eol_vimeo/.github/test.sh
+- Install **act** following the instructions in [https://nektosact.com/installation/index.html](https://nektosact.com/installation/index.html)
+
+**Run tests:**
+- In a terminal at the root of the project
+    ```
+    act -W .github/workflows/pythonapp.yml
+    ```
+
 
 ## Notes
 - The video is deleted from the storage once uploaded to vimeo, if the video has a status other than 'upload_completed' at the beginning of the task, it will not be deleted.
