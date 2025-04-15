@@ -1,23 +1,23 @@
-#!/bin/dash
+#!/bin/bash
 
-pip install -e /openedx/requirements/eol_vimeo
+set -e
 
-cd /openedx/requirements/eol_vimeo
+pip install --src /openedx/venv/src -e /openedx/requirements/app
+pip install pytest-cov genbadge[coverage]
+
+cd /openedx/requirements/app
 cp /openedx/edx-platform/setup.cfg .
+sed -i '/--json-report/c addopts = --nomigrations --reuse-db --durations=20 --json-report --json-report-omit keywords streams collectors log traceback tests --json-report-file=none --ignore=*/migrations/* --cov=eol_vimeo/ --cov-report term-missing --cov-report xml:reports/coverage/coverage.xml --cov-fail-under 70' setup.cfg
 
-cd /openedx/edx-platform
 mkdir test_root
 cd test_root/
 ln -s /openedx/staticfiles .
-cd ..
-#openedx-assets collect --settings=prod.assets
 
-cd /openedx/requirements/eol_vimeo
-pip install pytest-cov genbadge[coverage]
-sed -i '/--json-report/c addopts = --nomigrations --reuse-db --durations=20 --json-report --json-report-omit keywords streams collectors log traceback tests --json-report-file=none --ignore=*/migrations/* --cov=/openedx/requirements/eol_vimeo/eol_vimeo/ --cov-report term-missing --cov-report xml:/openedx/requirements/eol_vimeo/reports/coverage/coverage.xml --cov-config=/openedx/requirements/eol_vimeo/.coveragerc --cov-fail-under 70' setup.cfg
+cd /openedx/requirements/app
 
-cd /openedx/edx-platform
-EDXAPP_TEST_MONGO_HOST=mongodb python -Wd -m pytest --ds=cms.envs.test --junitxml=/openedx/edx-platform/reports/cms/nosetests.xml /openedx/requirements/eol_vimeo/eol_vimeo/tests.py
+DJANGO_SETTINGS_MODULE=cms.envs.test EDXAPP_TEST_MONGO_HOST=mongodb pytest eol_vimeo/tests.py
 
-cd /openedx/requirements/eol_vimeo
+rm -rf test_root
+
+echo "[run]\nomit = eol_vimeo/migrations/*" > .coveragerc
 genbadge coverage
