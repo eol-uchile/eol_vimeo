@@ -439,13 +439,13 @@ def update_video_vimeo(course_id=None):
             elif video_data['status'] == 'uploading_error' or 'upload' not in video_data or video_data['upload']['status'] == 'error':
                 logger.info('EolVimeo - video was not uploaded correctly, edx_video_id: {}, id_vimeo: {}'.format(video.edx_video_id, video.vimeo_video_id))
                 video.status = 'upload_failed'
-                video.error_description = 'Video no se subio correctamente a Vimeo. '
+                video.error_description = 'Video no se subió correctamente a Vimeo.'
                 video.save()
                 update_video_status(video.edx_video_id, 'upload_failed')
             elif video_data['upload']['status'] == 'in_progress':
                 logger.info('EolVimeo - Video is still uploading, edx_video_id: {}'.format(video.edx_video_id))
                 video.status = 'vimeo_upload'
-                video.error_description = 'Vimeo todavia esta subiendo el video. '
+                video.error_description = 'Vimeo todavía está subiendo el video.'
                 video.save()
                 update_video_status(video.edx_video_id, 'vimeo_upload')
             elif 'files' not in video_data or len(video_data['files']) == 0:
@@ -462,7 +462,7 @@ def update_video_vimeo(course_id=None):
                     elif video_data['transcode']['status'] == 'in_progress':
                         logger.info('EolVimeo - Video is still processing, edx_video_id: {}'.format(video.edx_video_id))
                         video.status = 'vimeo_encoding'
-                        video.error_description = 'Vimeo todavia esta procesando el video.'
+                        video.error_description = 'Vimeo todavía está procesando el video.'
                         video.save()
                         update_video_status(video.edx_video_id, 'vimeo_encoding')
                     else:
@@ -472,7 +472,7 @@ def update_video_vimeo(course_id=None):
                         if quality_video is not None:
                             if quality_video['public_name'] == 'Original':
                                 logger.info('EolVimeo - Video is still processing, edx_video_id: {}'.format(video.edx_video_id))
-                                error_description = 'Vimeo todavia esta procesando el video.'
+                                error_description = 'Vimeo todavía está procesando el video.'
                                 status_video = 'vimeo_encoding'
                             else:
                                 if quality_video['quality'] == "hd":
@@ -486,10 +486,10 @@ def update_video_vimeo(course_id=None):
                                             error_description = 'upload_completed, Lleva mas de 24 hrs procesando o video no tiene formato HD'
                                         else:
                                             status_video = 'upload_completed_encoding'
-                                            error_description = 'upload_completed_encoding, Lleva mas de 2 hrs procesando.'
+                                            error_description = 'upload_completed_encoding, Lleva más de 2 hrs procesando.'
                                     else:
                                         status_video = 'vimeo_encoding'
-                                        error_description = 'Vimeo todavia puede estar procesando el video.'
+                                        error_description = 'Vimeo todavía puede estar procesando el video.'
                             video.url_vimeo = quality_video['link']
                             video.status = status_video
                             video.error_description = error_description
@@ -512,10 +512,10 @@ def update_video_vimeo(course_id=None):
                                     error_description = 'upload_failed, Lleva mas de 24 hrs procesando o video no tiene formato HD'
                                 else:
                                     status_video = 'vimeo_encoding'
-                                    error_description = 'vimeo_encoding, Lleva mas de 2 hrs procesando.'
+                                    error_description = 'vimeo_encoding, Lleva más de 2 hrs procesando.'
                             else:
                                 status_video = 'vimeo_encoding'
-                                error_description = 'Vimeo todavia puede estar procesando el video.'
+                                error_description = 'Vimeo todavía puede estar procesando el video.'
                             video.status = status_video
                             video.error_description = error_description
                             video.save()
@@ -523,7 +523,7 @@ def update_video_vimeo(course_id=None):
                 else:
                     logger.info('EolVimeo - video was not uploaded correctly, edx_video_id: {}, id_vimeo: {}'.format(video.edx_video_id, video.vimeo_video_id))
                     video.status = 'upload_failed'
-                    video.error_description = 'Video no se subio correctamente a Vimeo. status={}'.format(video_data['status'])
+                    video.error_description = 'Video no se subió correctamente a Vimeo.status={}'.format(video_data['status'])
                     video.save()
                     update_video_status(video.edx_video_id, 'upload_failed')
     else:

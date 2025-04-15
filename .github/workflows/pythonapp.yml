@@ -2,23 +2,18 @@ name: Python application
 
 on:
   push:
+    paths-ignore:
+      - '.github/workflows/**'
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
     branches:
-      - master
+      - 'master'
+    paths-ignore:
+      - '.github/workflows/**'
 
 jobs:
   build:
-    
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v1
-    - name: Create coverage config file
-      run: |
-        echo -e "[run] \nomit = /openedx/requirements/eol_vimeo/eol_vimeo/migrations/*" > .coveragerc
-    - name: Run Tests
-      run: |
-        cd .github/
-        docker-compose run cms /openedx/requirements/eol_vimeo/.github/test.sh
-    - name: Push changes
-      run: |
-        ./.github/commit.sh ${{ secrets.GITHUB_TOKEN }}
+    uses: eol-uchile/eol_feedback/.github/workflows/pythonapp.yml@master
