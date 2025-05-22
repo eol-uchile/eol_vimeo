@@ -219,23 +219,6 @@ def move_video(client, id_folder, id_video):
         logger.exception('EolVimeo - Exception: %s' % str(e))
         return False
 
-def create_folder(client, id_folder):
-    """
-        Create folder in vimeo.
-        return folder uri
-    """
-    try:
-        response_folder = client.post('/me/projects', data={"name": id_folder})
-        if response_folder.status_code == 201:
-            data_folder = response_folder.json()
-            return data_folder['uri']
-        else:
-            logger.info('EolVimeo - Error to create folder, response: {}'.format(response_folder.json()))
-            return 'Error'
-    except Exception as e:
-        logger.exception('EolVimeo - Exception: %s' % str(e))
-        return 'Error'
-
 def get_folders(page, client, name_folder):
     """
         Get the folders based on the given page.
