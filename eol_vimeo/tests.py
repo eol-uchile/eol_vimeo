@@ -2,32 +2,36 @@
 # Python Standard Libraries
 from __future__ import unicode_literals
 from collections import namedtuple
+from io import StringIO
 import datetime
 import json
 import urllib.parse
 
 # Installed packages (via pip)
-from django.test import Client
-from django.urls import reverse
-from django.test.utils import override_settings
 from django.conf import settings
-from mock import patch, Mock
-import pytz
+from django.core.management import call_command
+from django.test import Client, TestCase
+from django.test.utils import override_settings
+from django.urls import reverse
+from mock import patch, Mock, MagicMock
 from six import text_type
+from types import SimpleNamespace
+import pytz
 
 # Edx dependencies
 from common.djangoapps.student.roles import CourseInstructorRole
 from common.djangoapps.student.tests.factories import UserFactory
 from common.djangoapps.util.testing import UrlResetMixin
 from edxval.api import create_video, create_profile, get_video_info
-from openedx.core.djangoapps.content.course_overviews.models import CourseOverview
 from opaque_keys.edx.keys import CourseKey
+from openedx.core.djangoapps.content.course_overviews.models import CourseOverview
 from xmodule.modulestore.tests.django_utils import ModuleStoreTestCase
 from xmodule.modulestore.tests.factories import CourseFactory
 
 # Internal project dependencies
-from . import vimeo_utils, vimeo_task
+from . import vimeo_utils, vimeo_task, views
 from .models import EolVimeoVideo
+from .settings.production import plugin_settings
 
 class TestEolVimeo(UrlResetMixin, ModuleStoreTestCase):
     def setUp(self):
@@ -485,7 +489,31 @@ class TestEolVimeo(UrlResetMixin, ModuleStoreTestCase):
         self.assertEqual(len(EolVimeoVideo.objects.all()), 2)
         eolvimeo_model = EolVimeoVideo.objects.get(course_key=self.course2.id, edx_video_id=self.video["edx_video_id"])
         self.assertEqual(eolvimeo_model.user, self.user)
-
+    
+    @patch("eol_vimeo.vimeo_utils.get_video_info")
+    def test_duplicate_video_fail_course_already_exist_in_edxval(self, mock_get_video_info):
+        """
+            Test duplicate a specific video, fail when video already exist
+        """
+        mock_get_video_info.return_value = {
+            'courses': [{str(self.course2.id): None}]
+        }
+        EolVimeoVideo.objects.create(
+            edx_video_id = self.video["edx_video_id"],
+            user =self.user,
+            vimeo_video_id = '1122334455',
+            course_key = self.course.id,
+            url_vimeo = 'url_video_vimeo',
+            status = 'upload_completed',
+            error_description = ''
+        )
+        with self.assertLogs('eol_vimeo.vimeo_utils', level='INFO') as cm:
+            vimeo_utils.duplicate_video(self.video["edx_video_id"], self.course.id, self.course2.id, self.user2)
+        self.assertTrue(any(
+        f'EOLVimeo - Error duplicate video, edx_video_id: {self.video["edx_video_id"]} with course: {self.course2.id} already exists in edxval' in log
+        for log in cm.output))
+   
+       
     def test_duplicate_all_video_normal_process(self):
         """
             Test duplicate all video vimeo normal process
@@ -1046,6 +1074,275 @@ class TestEolVimeo(UrlResetMixin, ModuleStoreTestCase):
         self.assertEqual(video['status'], 'vimeo_patch_failed')
         self.assertEqual(eolvimeo.status, 'vimeo_patch_failed')
 
+    @patch('requests.get')
+    @patch("eol_vimeo.vimeo_utils.update_video")
+    @override_settings(EOL_VIMEO_CLIENT_ID='1234567890asdfgh')
+    @override_settings(EOL_VIMEO_CLIENT_SECRET='1234567890asdfgh')
+    @override_settings(EOL_VIMEO_CLIENT_TOKEN='1234567890asdfgh')
+    def test_update_video_vimeo_status_not_valid(self, mock_update_video, get):
+        """
+            Test update_video_vimeo when status isn't valid
+        """
+        mock_update_video.side_effect = Exception()
+        EolVimeoVideo.objects.create(
+            edx_video_id = self.video["edx_video_id"],
+            user =self.user,
+            vimeo_video_id = '1122334455',
+            course_key = self.course.id,
+            url_vimeo = '',
+            status = 'vimeo_upload',
+            expiry_at = datetime.datetime.now(datetime.timezone.utc),
+            error_description = ''
+        )
+        get_data = {'name':self.video['client_video_id'], 'status':'test_status', 'transcode': {'status': 'complete'}, 'duration':self.video['duration'], 'upload': {'status': 'complete'}, 'files': [{'quality': 'hd', 'type': 'source', 'width': 0, 'height': 0, 'link': 'https://player.vimeo.com/external/1122233344', 'created_time': '2021-06-08T14:21:04+00:00', 'fps': 30, 'size': 0, 'md5': None, 'public_name': 'Original', 'size_short': ''}]}
+        get.side_effect = [namedtuple("Request", ["status_code", "json"])(200, lambda:get_data),]
+        with self.assertLogs('eol_vimeo.vimeo_utils', level='INFO') as cm:
+            vimeo_utils.update_video_vimeo()
+        self.assertTrue(any(
+        f'EolVimeo - video was not uploaded correctly, edx_video_id: {self.video["edx_video_id"]}' in log
+        for log in cm.output))
+        eolvimeo = EolVimeoVideo.objects.get(edx_video_id=self.video["edx_video_id"])
+        video = get_video_info(self.video["edx_video_id"])
+        self.assertEqual(video['status'], 'upload_failed')
+        self.assertEqual(eolvimeo.status, 'upload_failed')
+    
+    @patch('requests.get')
+    @patch("eol_vimeo.vimeo_utils.get_link_video")
+    @patch("eol_vimeo.vimeo_utils.update_video")
+    @override_settings(EOL_VIMEO_CLIENT_ID='1234567890asdfgh')
+    @override_settings(EOL_VIMEO_CLIENT_SECRET='1234567890asdfgh')
+    @override_settings(EOL_VIMEO_CLIENT_TOKEN='1234567890asdfgh')
+    def test_update_video_vimeo_status_vimeo_encoding_less_than_2_hours(self, mock_update_video, mock_eval_url, get):
+        """
+            Test update_video_vimeo when quality_video is none and less than 2 hours have passed
+        """
+        mock_update_video.side_effect = Exception()
+        mock_eval_url.return_value = None
+        EolVimeoVideo.objects.create(
+            edx_video_id = self.video["edx_video_id"],
+            user =self.user,
+            vimeo_video_id = '1122334455',
+            course_key = self.course.id,
+            url_vimeo = '',
+            status = 'vimeo_upload',
+            expiry_at = datetime.datetime.now(datetime.timezone.utc)+ datetime.timedelta(hours=3),
+            error_description = ''
+        )
+        get_data = {'name':self.video['client_video_id'], 'status':'available', 'transcode': {'status': 'complete'}, 'duration':self.video['duration'], 'upload': {'status': 'complete'}, 'files': [{'quality': 'hd', 'type': 'source', 'width': 0, 'height': 0, 'link': 'https://player.vimeo.com/external/1122233344', 'created_time': '2021-06-08T14:21:04+00:00', 'fps': 30, 'size': 0, 'md5': None, 'public_name': 'Original', 'size_short': ''}]}
+        get.side_effect = [namedtuple("Request", ["status_code", "json"])(200, lambda:get_data),]
+       
+        vimeo_utils.update_video_vimeo()
+        eolvimeo = EolVimeoVideo.objects.get(edx_video_id=self.video["edx_video_id"])
+        video = get_video_info(self.video["edx_video_id"])
+        self.assertEqual(video['status'], 'vimeo_encoding')
+        self.assertEqual(eolvimeo.status, 'vimeo_encoding')
+        self.assertEqual(eolvimeo.error_description, 'Vimeo todavía puede estar procesando el video.')
+
+    @patch('requests.get')
+    @patch("eol_vimeo.vimeo_utils.get_link_video")
+    @patch("eol_vimeo.vimeo_utils.update_video")
+    @override_settings(EOL_VIMEO_CLIENT_ID='1234567890asdfgh')
+    @override_settings(EOL_VIMEO_CLIENT_SECRET='1234567890asdfgh')
+    @override_settings(EOL_VIMEO_CLIENT_TOKEN='1234567890asdfgh')
+    def test_update_video_vimeo_status_vimeo_encoding_more_than_2_hrs_less_than_24_hrs(self, mock_update_video, mock_eval_url, get):
+        """
+            Test update_video_vimeo when quality_video is none and more than 2 hours but less than 24hrs have passed
+        """
+        mock_update_video.side_effect = Exception()
+        mock_eval_url.return_value = None
+        EolVimeoVideo.objects.create(
+            edx_video_id = self.video["edx_video_id"],
+            user =self.user,
+            vimeo_video_id = '1122334455',
+            course_key = self.course.id,
+            url_vimeo = '',
+            status = 'vimeo_upload',
+            expiry_at = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(hours=3),
+            error_description = ''
+        )
+        get_data = {'name':self.video['client_video_id'], 'status':'available', 'transcode': {'status': 'complete'}, 'duration':self.video['duration'], 'upload': {'status': 'complete'}, 'files': [{'quality': 'hd', 'type': 'source', 'width': 0, 'height': 0, 'link': 'https://player.vimeo.com/external/1122233344', 'created_time': '2021-06-08T14:21:04+00:00', 'fps': 30, 'size': 0, 'md5': None, 'public_name': 'Original', 'size_short': ''}]}
+        get.side_effect = [namedtuple("Request", ["status_code", "json"])(200, lambda:get_data),]
+       
+        vimeo_utils.update_video_vimeo()
+        eolvimeo = EolVimeoVideo.objects.get(edx_video_id=self.video["edx_video_id"])
+        video = get_video_info(self.video["edx_video_id"])
+        self.assertEqual(video['status'], 'vimeo_encoding')
+        self.assertEqual(eolvimeo.status, 'vimeo_encoding')
+        self.assertEqual(eolvimeo.error_description, 'vimeo_encoding, Lleva más de 2 hrs procesando.')
+
+    def test_utils_validate_course_wrong_course_id(self):
+        """
+            Test validate_course when course id is wrong
+        """
+        result = vimeo_utils.validate_course('111111111111')
+        self.assertFalse(result)
+
+    @patch('eol_vimeo.vimeo_task.update_create_vimeo_model')
+    @patch('eol_vimeo.vimeo_task.upload_vimeo')
+    @patch('eol_vimeo.vimeo_task.TaskProgress')
+    def test_task_get_data(self, mock_task_progress, mock_upload_vimeo, mock_update_model):
+        """
+            Test if task_get_data works correctly
+        """
+        mock_progress_instance = MagicMock()
+        mock_task_progress.return_value = mock_progress_instance
+        mock_progress_instance.update_task_state.return_value = "updated_state"
+
+        task_input = {
+            'user': 42,
+            'data': 'video_file_path.mp4',
+            'name_folder': 'test_folder',
+            'domain': 'example.com',
+            'course': 'course-v1:test+T101+2025'
+        }
+
+        course_id = 'course-v1:test+T101+2025'
+        action_name = 'Upload to Vimeo'
+
+        mock_upload_vimeo.return_value = [
+            {
+                'edxVideoId': 'video123',
+                'status': 'success',
+                'message': 'Video uploaded',
+                'vimeo_id': 'vimeo_456'
+            }
+        ]
+
+        result = vimeo_task.task_get_data(
+            _xmodule_instance_args=None,
+            _entry_id=None,
+            course_id=course_id,
+            task_input=task_input,
+            action_name=action_name
+        )
+
+        mock_upload_vimeo.assert_called_once_with('video_file_path.mp4', 'test_folder', 'example.com', course_id)
+        mock_update_model.assert_called_once_with(
+            'video123', 42, 'success', 'Video uploaded', str(course_id), vimeo_id='vimeo_456'
+        )
+        mock_progress_instance.update_task_state.assert_called_once_with(extra_meta={'step': 'Uploading Video to Vimeo'})
+        self.assertEqual(result, "updated_state")
+
+    @patch('eol_vimeo.vimeo_task.run_main_task')
+    def test_task_process_data(self, mock_run_main_task):
+        """
+            Test if process_data works correctly
+        """
+        entry_id = '1234'
+        xmodule_instance_args = {'some': 'value'}
+        mock_run_main_task.return_value = 'task_result'
+        result = vimeo_task.process_data(entry_id, xmodule_instance_args)
+        self.assertEqual(result, 'task_result')
+
+    def test_production_settings(self):
+        """
+            Test if production settings works correctly
+        """
+        settings = SimpleNamespace()
+        settings.ENV_TOKENS = {
+            'EOL_VIMEO_CLIENT_ID': 'abc123',
+            'EOL_VIMEO_CLIENT_SECRET': 'secret',
+            'EOL_VIMEO_CLIENT_TOKEN': 'token',
+            'EOL_VIMEO_MAIN_FOLDER': 'main_folder',
+            'EOL_VIMEO_DOMAINS': ['domain1.com', 'domain2.com'],
+        }
+        plugin_settings(settings)
+        self.assertEqual(settings.EOL_VIMEO_CLIENT_ID, 'abc123')
+
+    @patch('eol_vimeo.vimeo_task.submit_task')
+    def test_task_process_data_with_data(self, mock_submit_task):
+        """
+            Test task_process_data normal process
+        """
+        request = MagicMock()
+        request.user.id = 123
+        course_id = 'course-v1:TestX+T101+2024'
+        data = [{'edxVideoId': 'abc123'}]
+        name_folder = 'test_folder'
+        domain = 'example.com'
+        mock_submit_task.return_value = "{}_{}_{}".format(course_id, request.user.id, data[0]['edxVideoId'])
+
+        result = vimeo_task.task_process_data(request, course_id, data, name_folder, domain)
+        expected_task_key = f"{course_id}_{request.user.id}_{data[0]['edxVideoId']}"
+        self.assertEqual(result, expected_task_key)
+
+    @patch('eol_vimeo.vimeo_task.submit_task')
+    def test_task_process_data_with_empty_data(self, mock_submit_task):
+        """
+            Test task_process_data with empty data
+        """
+        request = MagicMock()
+        request.user.id = 456
+        course_id = 'course-v1:TestY+T202+2025'
+        data = []
+        name_folder = 'empty_folder'
+        domain = 'example.org'
+        mock_submit_task.return_value = "{}_{}_{}".format(course_id, request.user.id, 'empty')
+        result = vimeo_task.task_process_data(request, course_id, data, name_folder, domain)
+        expected_task_key = f"{course_id}_{request.user.id}_empty"
+        self.assertEqual(result, expected_task_key)
+
+    @patch('eol_vimeo.vimeo_utils.get_client_vimeo')
+    @patch('eol_vimeo.vimeo_utils.EolVimeoVideo.objects.get')
+    def test_update_image_video_error(self, mock_get_video, mock_get_client):
+        """
+            Test task_process_data with empty data
+        """
+        mock_video = MagicMock()
+        mock_video.vimeo_video_id = self.video["edx_video_id"]
+        mock_get_video.return_value = mock_video
+
+        mock_client = MagicMock()
+        mock_response = MagicMock()
+        mock_response.status_code = 404
+        mock_client.get.return_value = mock_response
+        mock_get_client.return_value = mock_client
+        result = vimeo_utils.update_image('test-edx-id', 'course-v1:test+TST+2025')
+        self.assertEqual(result, {'result': 'error', 'error':'The video does not exists'})
+    
+    @patch('eol_vimeo.vimeo_utils.get_client_vimeo')
+    @patch('eol_vimeo.vimeo_utils.EolVimeoVideo.objects.get')
+    def test_update_image_error_update(self, mock_get_video, mock_get_client):
+        """
+            Test update_image with exception error
+        """
+        mock_video = MagicMock()
+        mock_video.vimeo_video_id = self.video["edx_video_id"]
+        mock_get_video.return_value = mock_video
+        mock_client = MagicMock()
+        mock_response = MagicMock()
+        mock_response.status_code = 404
+        mock_client.get.return_value = mock_response
+        mock_get_client.return_value = Exception()
+        result = vimeo_utils.update_image('test-edx-id', 'course-v1:test+TST+2025')
+        self.assertEqual(result, {'result': 'error', 'error':'Error update video picture'})
+
+    @patch('eol_vimeo.vimeo_utils.get_client_vimeo')
+    def test_move_to_folder_id_folder_none(self, mock_get_client):
+        """
+            Test move_to_folder with id_folder set to None in order to verify its behavior when no valid folder ID is provided.
+        """
+        mock_client = MagicMock()
+        mock_response = MagicMock()
+        mock_response.status_code = 404
+        mock_client.get.return_value = mock_response
+        mock_get_client.return_value = Exception()
+        result = vimeo_utils.move_to_folder('test-edx-id', None)
+        self.assertFalse(result)
+    
+    @patch('eol_vimeo.vimeo_utils.get_client_vimeo')
+    def test_move_to_folder_client_none(self, mock_get_client):
+        """
+            Test move_to_folder with client set to None in order to verify its behavior when no valid client is provided
+        """
+        mock_client = MagicMock()
+        mock_response = MagicMock()
+        mock_response.status_code = 404
+        mock_client.get.return_value = mock_response
+        mock_get_client.return_value = None
+        result = vimeo_utils.move_to_folder('test-edx-id', 'folder_test')
+        self.assertFalse(result)
+
 class TestEolVimeoView(UrlResetMixin, ModuleStoreTestCase):
     def setUp(self):
         super(TestEolVimeoView, self).setUp()
@@ -1186,6 +1483,17 @@ class TestEolVimeoView(UrlResetMixin, ModuleStoreTestCase):
         result = self.client.get(
             reverse('vimeo_callback'))
         self.assertEqual(result.status_code, 400)
+    
+    def test_vimeo_callback_not_token_params(self):
+        """
+            Test vimeo_callback when no token is sended
+        """
+        result = self.client.get(
+            reverse('vimeo_callback'),
+            data={
+                'videoid': self.video2["edx_video_id"]
+                })
+        self.assertEqual(result.status_code, 400)
 
     def test_vimeo_callback_post(self):
         """
@@ -1266,6 +1574,17 @@ class TestEolVimeoView(UrlResetMixin, ModuleStoreTestCase):
                 'videoid': self.video["edx_video_id"],
                 'course_id': str(self.course.id)})
         self.assertEqual(result.status_code, 400)
+
+    @override_settings(AWS_S3_ENDPOINT_DOMAIN='s3')
+    @patch('eol_vimeo.views.videos.storage_service_key') 
+    @patch('eol_vimeo.views.videos.storage_service_bucket')
+    def test_get_url_video(self,mock_bucket, mock_storage_key):
+        mock_bucket.return_value = 'fake-bucket'
+        mock_key = MagicMock()
+        mock_key.generate_url.return_value = 'https://s3.test.test.ts/path-video-s3'
+        mock_storage_key.return_value = mock_key
+        result =  views.get_url_video('1111111')
+        self.assertEqual(result, 'https://s3.test.test.ts/path-video-s3')
     
     @patch('requests.get')
     @override_settings(EOL_VIMEO_CLIENT_ID='1234567890asdfgh')
@@ -1288,3 +1607,96 @@ class TestEolVimeoView(UrlResetMixin, ModuleStoreTestCase):
         self.assertTrue(result.json(), {'result':'success'})
         eolvimeo = EolVimeoVideo.objects.get(edx_video_id=self.video3["edx_video_id"], course_key=self.course.id)
         self.assertEqual(eolvimeo.url_picture, 'this is a picture url')
+    
+    def test_update_create_vimeo_model_normal_process(self):
+        """
+            Test update or create vimeo model normal process
+        """
+        vimeo_utils.update_create_vimeo_model(self.video["edx_video_id"], self.user.id, 'status_test', 'test', str(self.course.id), 'test.cl', 'new_id', 'test_token')
+        eolvimeo = EolVimeoVideo.objects.get(edx_video_id=self.video["edx_video_id"], course_key=self.course.id)
+        self.assertEqual(eolvimeo.status, 'status_test')
+
+    def test_update_create_vimeo_model_wrong_course_id(self):
+        """
+            Test update or create vimeo model when course_id is invalid
+        """
+        with self.assertLogs('eol_vimeo.vimeo_utils', level='INFO') as cm:
+            vimeo_utils.update_create_vimeo_model(self.video["edx_video_id"], self.user.id, 'status_test', 'test', 'invalid_course_id', 'test.cl', 'new_id', 'test_token')
+        self.assertTrue(any(
+        'EolVimeo - Invalid CourseKey course_key: invalid_course_id' in log
+        for log in cm.output))
+
+    @patch('eol_vimeo.vimeo_utils.check_credentials')
+    def test_get_client_vimeo_not_defined(self, mock_check_credentials):
+        """
+            Test get_client_vimeo without credentials defined
+        """
+        mock_check_credentials.return_value = False
+        with self.assertLogs('eol_vimeo.vimeo_utils', level='INFO') as cm:
+            result = vimeo_utils.get_client_vimeo()
+        self.assertEqual(result, None)
+        self.assertTrue(any(
+        'EolVimeo - Credentials are not defined' in log
+        for log in cm.output))
+    
+    @patch('eol_vimeo.vimeo_utils.get_client_vimeo')
+    def test_add_domain_to_video_with_client_vimeo_as_none(self, mock_get_client_vimeo):
+        """
+            Test add_domain_to_video with get_client_vimeo as None
+        """
+        mock_get_client_vimeo.return_value = None
+        result = vimeo_utils.add_domain_to_video("id_video")
+        self.assertFalse(result)
+
+    @patch('eol_vimeo.vimeo_utils.get_client_vimeo')
+    @patch('eol_vimeo.vimeo_utils.EolVimeoVideo.objects.get')
+    def test_update_image_with_client_vimeo_as_none(self, mock_get_video, mock_get_client):
+        """
+            Test update_image with get_client_vimeo as None so credentials aren't defined
+        """
+        mock_video = MagicMock()
+        mock_video.vimeo_video_id = self.video["edx_video_id"]
+        mock_get_video.return_value = mock_video
+        mock_get_client.return_value = None
+        result = vimeo_utils.update_image('test-edx-id', 'course-v1:test+TST+2025')
+        self.assertEqual(result, {'result':'error', 'error':'Credentials are not defined'})
+
+    @patch('eol_vimeo.vimeo_utils.get_client_vimeo')
+    def test_get_video_vimeo_with_client_vimeo_as_none(self, mock_get_client_vimeo):
+        """
+            Test get_video_vimeo with get_client_vimeo as None
+        """
+        mock_get_client_vimeo.return_value = None
+        result = vimeo_utils.get_video_vimeo("id_video")
+        self.assertEqual(result, {})
+
+    @patch('eol_vimeo.vimeo_utils.get_client_vimeo')
+    def test_get_video_vimeo_exception(self, mock_get_client_vimeo):
+        """
+            Test get_video_vimeo with exception error
+        """
+        mock_client = Mock()
+        mock_client.get.side_effect = Exception("Test error")
+        mock_get_client_vimeo.return_value = mock_client
+       
+        with self.assertLogs('eol_vimeo.vimeo_utils', level='INFO') as cm:
+            result = vimeo_utils.get_video_vimeo("id_video")
+        self.assertEqual(result, {})
+        self.assertTrue(any(
+        'EolVimeo - Exception: Test error' in log
+        for log in cm.output))
+
+class CommandTest(TestCase):
+    @patch('eol_vimeo.management.commands.vimeo_update_url_videos.update_video_vimeo')
+    def test_command_discussion_notification(self,mock_update_video_vimeo):
+        """
+        Test if vimeo_update_url_videos works properly
+        """
+        mock_update_video_vimeo.return_value = True
+        out = StringIO()
+        with self.assertLogs('eol_vimeo.management.commands.vimeo_update_url_videos', level='INFO') as cm:
+             call_command('vimeo_update_url_videos', stdout=out)
+        self.assertTrue(out)
+        self.assertTrue(any(
+        'EolVimeoCommand - Running vimeo_utils.update_video_vimeo()' in log
+        for log in cm.output))
