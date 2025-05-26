@@ -1,39 +1,28 @@
 # -*- coding: utf-8 -*-
-
+# Python Standard Libraries
 from __future__ import unicode_literals
-
-import six
-import json
-import os
-import math
-from django.conf import settings
-from openedx.core.djangoapps.site_configuration import helpers as configuration_helpers
-from opaque_keys.edx.keys import CourseKey, UsageKey
-from opaque_keys import InvalidKeyError
-from django.contrib.auth.models import User
-from django.urls import reverse
-from lms.djangoapps.courseware.access import has_access, get_user_role
-from lms.djangoapps.courseware.courses import get_course_with_access
-from collections import OrderedDict, defaultdict, deque
-from opaque_keys.edx.locator import CourseLocator, BlockUsageLocator
-from django.db import IntegrityError, transaction
-from django.utils.translation import ugettext_noop
-from uuid import uuid4
-import logging
-import vimeo
-import tempfile
-import shutil
-import json
-import urllib.parse
-import requests
-from edxval.models import Video
-from edxval.api import update_video, _get_video, get_video_info
-from django.core.files.storage import get_storage_class
-from .models import EolVimeoVideo
-from cms.djangoapps.contentstore.views import videos
-from edxval.api import update_video_status
-from django.utils import timezone
 import datetime
+import json
+import logging
+import urllib.parse
+
+# Installed packages (via pip)
+from django.conf import settings
+from django.core.files.storage import get_storage_class
+from django.urls import reverse
+from django.utils import timezone
+import requests
+import vimeo
+
+# Edx dependencies
+from edxval.api import update_video_status, update_video, _get_video, get_video_info
+from lms.djangoapps.courseware.access import has_access
+from lms.djangoapps.courseware.courses import get_course_with_access
+from opaque_keys import InvalidKeyError
+from opaque_keys.edx.keys import CourseKey
+
+# Internal project dependencies
+from .models import EolVimeoVideo
 
 logger = logging.getLogger(__name__)
 

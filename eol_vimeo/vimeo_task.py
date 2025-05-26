@@ -1,37 +1,31 @@
 # -*- coding: utf-8 -*-
-
+# Python Standard Libraries
 from __future__ import unicode_literals
-
-import six
-import json
-import os
-import math
+from functools import partial
+from time import time
 import logging
-from django.conf import settings
-from opaque_keys.edx.keys import CourseKey, UsageKey
-from opaque_keys import InvalidKeyError
-from django.contrib.auth.models import User
-from opaque_keys.edx.locator import CourseLocator, BlockUsageLocator
+
+# Installed packages (via pip)
+from celery import task
+from django.utils.translation import ugettext_noop
+
+# Edx dependencies
+from edxval.api import update_video_status
+from lms.djangoapps.instructor_task.api_helper import submit_task
+from lms.djangoapps.instructor_task.tasks_base import BaseInstructorTask
+from lms.djangoapps.instructor_task.tasks_helper.runner import run_main_task, TaskProgress
+from opaque_keys.edx.keys import CourseKey
+
+# Internal project dependencies
 from .vimeo_utils import (
     upload,
     add_domain_to_video,
     move_to_folder,
     get_video_vimeo,
-    update_create_vimeo_model,
-    get_link_video
+    update_create_vimeo_model
     )
-from celery import current_task, task
-from lms.djangoapps.instructor_task.tasks_base import BaseInstructorTask
-from lms.djangoapps.instructor_task.api_helper import submit_task
-from lms.djangoapps.instructor_task.tasks_helper.runner import run_main_task, TaskProgress
-from django.db import IntegrityError, transaction
-from functools import partial
-from time import time
-from django.utils.translation import ugettext_noop
-from lms.djangoapps.instructor_task.api_helper import AlreadyRunningError
-from edxval.api import update_video_status
 
-from django.core.files.storage import get_storage_class
+
 logger = logging.getLogger(__name__)
 
 def upload_vimeo(data, name_folder, domain, course_id):
