@@ -175,7 +175,7 @@ def update_image(edx_video_id, course_key):
             video_vimeo.save()
             return {'result':'success'}
         else:
-            logger.info('EolVimeo - The video does not exists, id_video_vimeo:{}, response: {}'.format(id_video, response.text))
+            logger.info('EolVimeo - The video does not exists, id_video_vimeo:{}, response: {}'.format(edx_video_id, response.text))
             return {'result':'error', 'error':'The video does not exists'}
     except Exception as e:
         logger.exception('EolVimeo - Exception: %s' % str(e))
