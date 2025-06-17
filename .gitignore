@@ -54,7 +54,7 @@ coverage.xml
 .pytest_cache/
 reports/
 .coveragerc
-setup.cfg
+
 # Translations
 *.mo
 *.pot
@@ -130,7 +130,3 @@ dmypy.json
 
 .vscode
 .pep8
-
-# openedx test files
-test_root/
-setup.cfg
