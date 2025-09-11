@@ -1,39 +1,28 @@
 # -*- coding: utf-8 -*-
-
+# Python Standard Libraries
 from __future__ import unicode_literals
-
-import six
-import json
-import os
-import math
-from django.conf import settings
-from openedx.core.djangoapps.site_configuration import helpers as configuration_helpers
-from opaque_keys.edx.keys import CourseKey, UsageKey
-from opaque_keys import InvalidKeyError
-from django.contrib.auth.models import User
-from django.urls import reverse
-from lms.djangoapps.courseware.access import has_access, get_user_role
-from lms.djangoapps.courseware.courses import get_course_with_access
-from collections import OrderedDict, defaultdict, deque
-from opaque_keys.edx.locator import CourseLocator, BlockUsageLocator
-from django.db import IntegrityError, transaction
-from django.utils.translation import ugettext_noop
-from uuid import uuid4
-import logging
-import vimeo
-import tempfile
-import shutil
-import json
-import urllib.parse
-import requests
-from edxval.models import Video
-from edxval.api import update_video, _get_video, get_video_info
-from django.core.files.storage import get_storage_class
-from .models import EolVimeoVideo
-from cms.djangoapps.contentstore.views import videos
-from edxval.api import update_video_status
-from django.utils import timezone
 import datetime
+import json
+import logging
+import urllib.parse
+
+# Installed packages (via pip)
+from django.conf import settings
+from django.core.files.storage import get_storage_class
+from django.urls import reverse
+from django.utils import timezone
+import requests
+import vimeo
+
+# Edx dependencies
+from edxval.api import update_video_status, update_video, _get_video, get_video_info
+from lms.djangoapps.courseware.access import has_access
+from lms.djangoapps.courseware.courses import get_course_with_access
+from opaque_keys import InvalidKeyError
+from opaque_keys.edx.keys import CourseKey
+
+# Internal project dependencies
+from .models import EolVimeoVideo
 
 logger = logging.getLogger(__name__)
 
@@ -186,7 +175,7 @@ def update_image(edx_video_id, course_key):
             video_vimeo.save()
             return {'result':'success'}
         else:
-            logger.info('EolVimeo - The video does not exists, id_video_vimeo:{}, response: {}'.format(id_video, response.text))
+            logger.info('EolVimeo - The video does not exists, id_video_vimeo:{}, response: {}'.format(edx_video_id, response.text))
             return {'result':'error', 'error':'The video does not exists'}
     except Exception as e:
         logger.exception('EolVimeo - Exception: %s' % str(e))
@@ -218,47 +207,6 @@ def move_video(client, id_folder, id_video):
     except Exception as e:
         logger.exception('EolVimeo - Exception: %s' % str(e))
         return False
-
-def create_folder(client, id_folder):
-    """
-        Create folder in vimeo.
-        return folder uri
-    """
-    try:
-        response_folder = client.post('/me/projects', data={"name": id_folder})
-        if response_folder.status_code == 201:
-            data_folder = response_folder.json()
-            return data_folder['uri']
-        else:
-            logger.info('EolVimeo - Error to create folder, response: {}'.format(response_folder.json()))
-            return 'Error'
-    except Exception as e:
-        logger.exception('EolVimeo - Exception: %s' % str(e))
-        return 'Error'
-
-def get_folders(page, client, name_folder):
-    """
-        Get the folders based on the given page.
-        100 folders by page
-    """
-    uri_folder = ''
-    next_step = False
-    try:
-        response_folder = client.get('/me/projects', params={"direction": "asc", "page":page, "per_page": 100, "sort":"name", "fields": "uri,name"})
-        if response_folder.status_code == 200:
-            data_folder = response_folder.json()
-            next_step = data_folder['page'] < data_folder['total']
-            for folder in data_folder['data']:
-                if folder['name'] == name_folder:
-                    uri_folder = folder['uri']
-                    break
-            return uri_folder, next_step
-        else:
-            logger.info('EolVimeo - Error to get folders, page:{}, response: {}'.format(page, response_folder.json()))
-            return 'Error', next_step
-    except Exception as e:
-        logger.exception('EolVimeo - Exception: %s' % str(e))
-        return 'Error', next_step
 
 def upload(id_file, domain, course_id):
     """
