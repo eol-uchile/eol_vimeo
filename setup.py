@@ -1,6 +1,5 @@
 import os
-
-from setuptools import setup
+import setuptools
 
 def package_data(pkg, roots):
     """Generic function to find package_data.
@@ -15,14 +14,14 @@ def package_data(pkg, roots):
 
     return {pkg: data}
 
-setup(
+setuptools.setup(
     name="eol_vimeo",
-    version="1.0.1",
+    version="2.0.0",
     author="Oficina EOL UChile",
     author_email="eol-ing@uchile.cl",
     description="Upload video to Vimeo",
     url="https://eol.uchile.cl",
-    packages=['eol_vimeo'],
+    packages=setuptools.find_packages(),
     install_requires=[
         "PyVimeo>=1.1.0"
         ],
@@ -34,6 +33,5 @@ setup(
     entry_points={
         "cms.djangoapp": ["eol_vimeo = eol_vimeo.apps:EolVimeoConfig"],
         "lms.djangoapp": ["eol_vimeo = eol_vimeo.apps:EolVimeoConfig"]
-    },
-    package_data=package_data("eol_vimeo", ["static", "public"]),
+    }   
 )
