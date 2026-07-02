@@ -1,12 +1,8 @@
-
-
+# Installed packages (via pip)
 from django.conf.urls import url
-from django.conf import settings
 
+# Internal project dependencies
 from .views import vimeo_callback, vimeo_update_picture
-
-from django.contrib.auth.decorators import login_required
-from django.views.decorators.csrf import csrf_exempt
 
 urlpatterns = (
     url(

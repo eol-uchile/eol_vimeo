@@ -1,0 +1,33 @@
+<%page expression_filter="h"/>
+<%namespace name='static' file='/static_content.html'/>
+<%!
+from django.utils.translation import ugettext as _
+from django.urls import reverse
+import json
+%>
+<%page args="tabName"/>
+
+<%
+from eol_vimeo.vimeo_utils import get_eol_videos_vimeo
+%>
+
+<% 
+course_id  = context.get("module").location.course_key
+eol_video_list = get_eol_videos_vimeo(course_id) 
+%>
+
+<script id="basic-vimeo-config" type="application/json">
+{
+    "htmlId": "${html_id | n, decode.utf8}",
+    "tabName": "${tabName | n, decode.utf8}",
+    "courseId": "${course_id | n, decode.utf8}",
+    "edx_selected_video_id": "${transcripts_basic_tab_metadata['edx_video_id']['value'] | n, decode.utf8}",
+    "eol_video_list": ${json.dumps(eol_video_list)}
+}
+</script>
+
+<link rel="stylesheet" type="text/css" href="${static.url('eol_vimeo/css/eol_vimeo_video_list.css')}"/>
+
+<div class="wrapper-comp-settings basic_metadata_edit" data-metadata='${json.dumps(transcripts_basic_tab_metadata) | h}'></div>
+
+<script type="text/javascript" src="${static.url('eol_vimeo/js/eol_vimeo_video_list.js')}"></script>
