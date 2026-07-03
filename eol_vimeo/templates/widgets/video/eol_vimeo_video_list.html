@@ -17,10 +17,20 @@ from eol_vimeo.vimeo_utils import get_eol_videos_vimeo
 {
     "htmlId": "${html_id | n, decode.utf8}",
     "tabName": "${tabName | n, decode.utf8}",
-    "courseId": "${course_id | n, decode.utf8}",
+    "courseId": "",
     "edx_selected_video_id": "${transcripts_basic_tab_metadata['edx_video_id']['value'] | n, decode.utf8}",
     "eol_video_list": ${json.dumps(eol_video_list)}
 }
+</script>
+<script>
+    // set course_id value in the config script, so that it can be used in the JS code
+    const configScript = document.getElementById("basic-vimeo-config");
+    const config = JSON.parse(configScript.textContent);
+    const editor = document.querySelector(".xblock-editor");
+    if (editor) {
+        config.courseId = editor.dataset.courseKey;
+        configScript.textContent = JSON.stringify(config);
+    }
 </script>
 
 
