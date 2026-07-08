@@ -1,0 +1,57 @@
+# English translations for xblock-in-video-quiz.
+# Copyright (C) 2026 Oficina EOL
+# This file is distributed under the same license as the
+# xblock-in-video-quiz project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xblock-in-video-quiz 1.0.0\n"
+"Report-Msgid-Bugs-To: eol-ing@uchile.cl\n"
+"POT-Creation-Date: 2026-07-08 14:44+0000\n"
+"PO-Revision-Date: 2026-07-08 13:59+0000\n"
+"Last-Translator: Oficina EOL <eol-ing@uchile.cl>\n"
+"Language: en\n"
+"Language-Team: en <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.18.0\n"
+
+#: eol_vimeo/static/eol_vimeo/js/eol_vimeo_video_list.js:55
+msgid "External link from YouTube (default video URL)"
+msgstr ""
+
+#: eol_vimeo/static/eol_vimeo/js/eol_vimeo_video_list.js:66
+msgid "Select a video"
+msgstr ""
+
+#: eol_vimeo/static/eol_vimeo/js/eol_vimeo_video_list.js:70
+msgid ""
+"Select a video previously uploaded to the course or insert an external "
+"YouTube link in the corresponding field."
+msgstr ""
+
+#: eol_vimeo/static/eol_vimeo/js/eol_vimeo_video_list.js:93
+msgid "External YouTube link"
+msgstr ""
+
+#: eol_vimeo/static/eol_vimeo/js/eol_vimeo_video_list.js:101
+#: eol_vimeo/static/eol_vimeo/js/eol_vimeo_video_list.js:170
+msgid "Update thumbnail from Vimeo"
+msgstr ""
+
+#: eol_vimeo/static/eol_vimeo/js/eol_vimeo_video_list.js:102
+msgid "Update"
+msgstr ""
+
+#: eol_vimeo/static/eol_vimeo/js/eol_vimeo_video_list.js:108
+msgid "Updating"
+msgstr ""
+
+#: eol_vimeo/static/eol_vimeo/js/eol_vimeo_video_list.js:174
+#: eol_vimeo/static/eol_vimeo/js/eol_vimeo_video_list.js:180
+msgid "There was an error updating the thumbnail."
+msgstr ""
+

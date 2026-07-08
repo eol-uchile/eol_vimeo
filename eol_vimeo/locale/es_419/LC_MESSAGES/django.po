@@ -1,0 +1,21 @@
+# Spanish (Latin America) translations for xblock-in-video-quiz.
+# Copyright (C) 2026 Oficina EOL
+# This file is distributed under the same license as the
+# xblock-in-video-quiz project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xblock-in-video-quiz 1.0.0\n"
+"Report-Msgid-Bugs-To: eol-ing@uchile.cl\n"
+"POT-Creation-Date: 2026-07-08 14:44+0000\n"
+"PO-Revision-Date: 2026-07-08 14:00+0000\n"
+"Last-Translator: Oficina EOL <eol-ing@uchile.cl>\n"
+"Language: es_419\n"
+"Language-Team: es_419 <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.18.0\n"
+
