@@ -1734,8 +1734,6 @@ class TestEolVimeoView(UrlResetMixin, ModuleStoreTestCase):
         self.assertEqual(result, [])
 
 
-    from unittest.mock import patch
-
     @patch("eol_vimeo.vimeo_utils.logger")
     @patch("eol_vimeo.vimeo_utils._get_video")
     @patch("eol_vimeo.vimeo_utils.check_credentials")
@@ -1772,6 +1770,40 @@ class TestEolVimeoView(UrlResetMixin, ModuleStoreTestCase):
             "EolVimeo - Error uploading: video_1",
             mock_logger.exception.call_args[0][0]
         )
+
+    def test_get_link_video(self):
+        """
+            Test get_link_video normal process with
+            1. return 30 fps video
+            2. return 60 fps video
+        """
+        # Test case 1: Return 30 fps video
+        video_data = {
+            "files": [
+                {
+                    "quality": "hd",
+                    "height": 720,
+                    "fps": 30,
+                    "link": "video30.mp4",
+                }
+            ]
+        }
+        result = vimeo_utils.get_link_video(video_data)
+        assert result["link"] == "video30.mp4"
+        
+        # Test case 2: Return 60 fps video
+        video_data = {
+            "files": [
+                {
+                    "quality": "hd",
+                    "height": 720,
+                    "fps": 60,
+                    "link": "video60.mp4",
+                }
+            ]
+        }
+        result = vimeo_utils.get_link_video(video_data)
+        assert result["link"] == "video60.mp4"
 
     @patch("eol_vimeo.vimeo_utils.logger")
     def test_move_video_exception(self, mock_logger):
