@@ -1,0 +1,58 @@
+# Spanish (Latin America) translations for eol_vimeo.
+# Copyright (C) 2026 Oficina EOL
+# This file is distributed under the same license as the
+# eol_vimeo project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: eol_vimeo 1.0.0\n"
+"Report-Msgid-Bugs-To: eol-ing@uchile.cl\n"
+"POT-Creation-Date: 2026-07-23 15:39+0000\n"
+"PO-Revision-Date: 2026-07-08 14:00+0000\n"
+"Last-Translator: Oficina EOL <eol-ing@uchile.cl>\n"
+"Language: es_419\n"
+"Language-Team: es_419 <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.18.0\n"
+
+#: eol_vimeo/static/eol_vimeo/js/eol_vimeo_video_list.js:67
+msgid "Select a video"
+msgstr "Seleccione un video"
+
+#: eol_vimeo/static/eol_vimeo/js/eol_vimeo_video_list.js:71
+msgid ""
+"Select a video previously uploaded to the course or insert an external "
+"link in the corresponding field."
+msgstr ""
+"Seleccione un video previamente cargado al curso o inserte un enlace a un"
+" video externo en el campo correspondiente."
+
+#: eol_vimeo/static/eol_vimeo/js/eol_vimeo_video_list.js:96
+msgid "External video link"
+msgstr "Enlace a un video externo"
+
+#: eol_vimeo/static/eol_vimeo/js/eol_vimeo_video_list.js:104
+msgid "Update thumbnail  from Vimeo"
+msgstr ""
+
+#: eol_vimeo/static/eol_vimeo/js/eol_vimeo_video_list.js:105
+msgid "Update"
+msgstr "Actualizar"
+
+#: eol_vimeo/static/eol_vimeo/js/eol_vimeo_video_list.js:111
+msgid "Updating"
+msgstr "Actualizando"
+
+#: eol_vimeo/static/eol_vimeo/js/eol_vimeo_video_list.js:179
+msgid "Update thumbnail from Vimeo"
+msgstr "Actualizar miniatura desde Vimeo"
+
+#: eol_vimeo/static/eol_vimeo/js/eol_vimeo_video_list.js:182
+#: eol_vimeo/static/eol_vimeo/js/eol_vimeo_video_list.js:185
+msgid "There was an error updating the thumbnail."
+msgstr "Se ha producido un error al actualizar la miniatura."
+
