@@ -63,11 +63,11 @@ require(
         editor_container.find('ul.list-input.settings-list').prepend(`
             <li class="field comp-setting-entry metadata_entry">
                 <div class="wrapper-comp-setting">
-                <label class="label setting-label">${gettext("Select a video")}</label>
+                <label class="label setting-label">`+gettext("Select a video")+`</label>
                     <select id="eol-video-${html_id}">
                     </select>
                     <span class="tip setting-help">
-                        ${gettext("Select a video previously uploaded to the course or insert an external YouTube link in the corresponding field.")}
+                        `+gettext("Select a video previously uploaded to the course or insert an external YouTube link in the corresponding field.")+`
                     </span>
                 </div>
             </li>
@@ -86,11 +86,11 @@ require(
                     selected: isSelected
                 }).text(video.display_name)
             );
-        });
+        });    
         // create default video option
         $(`#eol-video-${html_id}`).prepend(
             `<option value="" ${pre_exists_video_id ? 'selected' : ''}>
-                ${gettext("External YouTube link")}
+                `+gettext("External YouTube link")+`
             </option>`
         );
 
@@ -98,14 +98,14 @@ require(
         update_thumbnail_html = `
         <li class="field comp-setting-entry metadata_entry update-thumbnail-vimeo">
             <div class="wrapper-comp-setting">
-                <label class="label setting-label">${gettext("Update thumbnail from Vimeo")}</label>
-                <button id="eol-update-${html_id}" class="action setting-upload update-vimeo" type="button" data-tooltip="${gettext("Update")}" data-videoid="${edx_selected_video_id}" value="${gettext("Update")}">${gettext("Update")}</button>
+                <label class="label setting-label">`+gettext("Update thumbnail from Vimeo")+`</label>
+                <button id="eol-update-${html_id}" class="action setting-upload update-vimeo" type="button" data-tooltip="`+gettext("Update")+`" data-videoid="${edx_selected_video_id}" value="`+gettext("Update")+`">`+gettext("Update")+`</button>
             </div>
             <span class="tip setting-help">
                 <div id="ui-loading-update" class="ui-loading is-hidden">
                     <p>
                         <span class="spin"><span class="icon fa fa-refresh" aria-hidden="true"></span></span>
-                        <span class="copy">${gettext("Updating")}</span>
+                        <span class="copy">`+gettext("Updating")+`</span>
                     </p>
                 </div>
             </span>
@@ -167,7 +167,7 @@ require(
             $.post('/eolvimeo/update_picture', {'videoid': this.dataset.videoid, 'course_id': course_id}).done(function(response) {
                 if (response.result == 'success' ){
                     text_response = editor_container.find('#eol-update-response');
-                    text_response.html(gettext("Updated miniature."));
+                    text_response.html(gettext("Update thumbnail from Vimeo"));
                 }
                 else {
                     text_response = editor_container.find('#eol-update-response');
