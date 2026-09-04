@@ -3,6 +3,8 @@
 import logging
 
 # Installed packages (via pip)
+import boto3
+from django.conf import settings
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.utils import timezone
 
@@ -65,7 +67,14 @@ def vimeo_update_picture(request):
     return JsonResponse(response)
 
 def get_url_video(edx_video_id):
-    bucket = videos.storage_service_bucket()
-    key = videos.storage_service_key(bucket, file_name=edx_video_id)
-    upload_url = key.generate_url(86400, 'GET')
+    video_session = boto3.Session(profile_name='video_uploads')
+    s3_client = video_session.client('s3', endpoint_url=settings.AWS_S3_ENDPOINT_URL)
+    upload_url = s3_client.generate_presigned_url(
+            ClientMethod='get_object',
+            Params={
+                'Bucket': videos.storage_service_bucket_name(),
+                'Key': videos.storage_service_key_name(edx_video_id),
+            },
+            ExpiresIn=videos.KEY_EXPIRATION_IN_SECONDS,
+        )
     return upload_url
