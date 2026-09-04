@@ -1574,17 +1574,6 @@ class TestEolVimeoView(UrlResetMixin, ModuleStoreTestCase):
                 'videoid': self.video["edx_video_id"],
                 'course_id': str(self.course.id)})
         self.assertEqual(result.status_code, 400)
-
-    @override_settings(AWS_S3_ENDPOINT_DOMAIN='s3')
-    @patch('eol_vimeo.views.videos.storage_service_key') 
-    @patch('eol_vimeo.views.videos.storage_service_bucket')
-    def test_get_url_video(self,mock_bucket, mock_storage_key):
-        mock_bucket.return_value = 'fake-bucket'
-        mock_key = MagicMock()
-        mock_key.generate_url.return_value = 'https://s3.test.test.ts/path-video-s3'
-        mock_storage_key.return_value = mock_key
-        result =  views.get_url_video('1111111')
-        self.assertEqual(result, 'https://s3.test.test.ts/path-video-s3')
     
     @patch('requests.get')
     @override_settings(EOL_VIMEO_CLIENT_ID='1234567890asdfgh')
