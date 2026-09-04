@@ -21,7 +21,7 @@ To enable [Vimeo API](https://developer.vimeo.com/api/guides/start) Add this con
     EOL_VIMEO_CLIENT_ID: ''
     EOL_VIMEO_CLIENT_SECRET: ''
     EOL_VIMEO_CLIENT_TOKEN: ''
-    EOL_VIMEO_MAIN_FOLDER: 'Studio Eol'
+    EOL_VIMEO_MAIN_FOLDER: '123456'
     EOL_VIMEO_DOMAINS: ['your-domain.com', 'studio.your-domain.com']
 
 # Setup Vimeo for S3
@@ -45,6 +45,7 @@ Add this configuration in `LMS` & `CMS` .yml:
         ENABLE_VIDEO_UPLOAD_PIPELINE: true
     VIDEO_UPLOAD_PIPELINE:
         BUCKET: 'bucketname'
+        HOST: 's3.example.org'
         ROOT_PATH: ''
         VEM_S3_BUCKET: 'bucketname'
 
