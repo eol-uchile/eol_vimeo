@@ -101,7 +101,7 @@ require(
         thumbnail_editor_html = `
         <li class="field comp-setting-entry metadata_entry" id="eol-update-thumbnail-${html_id}-container">
             <div class="wrapper-comp-setting">
-                <label class="label setting-label">`+gettext("Update thumbnail  from Vimeo")+`</label>
+                <label class="label setting-label">`+gettext("Update thumbnail from Vimeo")+`</label>
                 <button id="eol-update-${html_id}" class="action setting-upload update-vimeo" type="button" data-tooltip="`+gettext("Update")+`" data-videoid="${edx_selected_video_id}" value="`+gettext("Update")+`">`+gettext("Update")+`</button>
             </div>
             <span class="tip setting-help">
