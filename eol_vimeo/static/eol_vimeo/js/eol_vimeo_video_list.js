@@ -176,13 +176,13 @@ require(
             e.currentTarget.disabled = true;
             $.post('/eolvimeo/update_picture', {'videoid': this.dataset.videoid, 'course_id': course_id}).done(function(response) {
                 if (response.result == 'success' ){
-                    $('#eol-update-response').html(gettext("Update thumbnail from Vimeo"));
+                    $('#eol-update-response').text(gettext("Update thumbnail from Vimeo"));
                 }
                 else {
-                    $('#eol-update-response').html(gettext("There was an error updating the thumbnail."));
+                    $('#eol-update-response').text(gettext("There was an error updating the thumbnail."));
                 }
             }).fail(function() {
-                $('#eol-update-response').html(gettext("There was an error updating the thumbnail."));
+                $('#eol-update-response').text(gettext("There was an error updating the thumbnail."));
             }).always(function() {
                 $('#ui-loading-update').hide();
                 e.currentTarget.disabled = false;
