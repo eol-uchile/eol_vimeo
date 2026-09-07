@@ -479,14 +479,14 @@ def update_video_vimeo(course_id=None):
 
 def get_eol_videos_vimeo( course_key ):
     """
-        Get a list of vimeo videos, only with status vimeo_encoding and upload_completed 
+        Get a list of vimeo videos, only with status upload_completed
     """
     if not validate_course(str(course_key)):
         logger.info('EolVimeo - Invalid CourseKey course_key: {}.'.format(course_key))
         return []
     update_video_vimeo(str(course_key))
     video_list = []
-    vimeo_list = EolVimeoVideo.objects.filter(course_key=course_key, status__in=['upload_completed']).values('edx_video_id','url_vimeo')
+    vimeo_list = EolVimeoVideo.objects.filter(course_key=course_key, status='upload_completed').values('edx_video_id','url_vimeo')
     for video in vimeo_list:
         aux = _get_video(video['edx_video_id'])
         video_list.append({'edx_video_id': video['edx_video_id'], 'display_name': aux.client_video_id, 'url_vimeo':video['url_vimeo']})
