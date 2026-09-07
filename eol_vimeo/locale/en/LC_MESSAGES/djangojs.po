@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: eol_vimeo 1.0.0\n"
 "Report-Msgid-Bugs-To: eol-ing@uchile.cl\n"
-"POT-Creation-Date: 2026-07-23 15:39+0000\n"
+"POT-Creation-Date: 2026-09-07 19:21+0000\n"
 "PO-Revision-Date: 2026-07-08 13:59+0000\n"
 "Last-Translator: Oficina EOL <eol-ing@uchile.cl>\n"
 "Language: en\n"
@@ -34,7 +34,8 @@ msgid "External video link"
 msgstr ""
 
 #: eol_vimeo/static/eol_vimeo/js/eol_vimeo_video_list.js:104
-msgid "Update thumbnail  from Vimeo"
+#: eol_vimeo/static/eol_vimeo/js/eol_vimeo_video_list.js:179
+msgid "Update thumbnail from Vimeo"
 msgstr ""
 
 #: eol_vimeo/static/eol_vimeo/js/eol_vimeo_video_list.js:105
@@ -43,10 +44,6 @@ msgstr ""
 
 #: eol_vimeo/static/eol_vimeo/js/eol_vimeo_video_list.js:111
 msgid "Updating"
-msgstr ""
-
-#: eol_vimeo/static/eol_vimeo/js/eol_vimeo_video_list.js:179
-msgid "Update thumbnail from Vimeo"
 msgstr ""
 
 #: eol_vimeo/static/eol_vimeo/js/eol_vimeo_video_list.js:182
