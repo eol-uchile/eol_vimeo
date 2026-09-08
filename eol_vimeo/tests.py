@@ -1789,8 +1789,15 @@ class TestEolVimeoView(UrlResetMixin, ModuleStoreTestCase):
                 }
             ]
         }
+
         result = vimeo_utils.get_link_video(video_data)
-        assert result["link"] == "video30.mp4"
+        expected_result = {
+                            "quality": "hd",
+                            "height": 720,
+                            "fps": 30,
+                            "link": "video30.mp4",
+                        }
+        self.assertEqual(result, expected_result)
         
         # Test case 2: Return 60 fps video
         video_data = {
@@ -1804,7 +1811,13 @@ class TestEolVimeoView(UrlResetMixin, ModuleStoreTestCase):
             ]
         }
         result = vimeo_utils.get_link_video(video_data)
-        assert result["link"] == "video60.mp4"
+        expected_result = {
+                            "quality": "hd",
+                            "height": 720,
+                            "fps": 60,
+                            "link": "video60.mp4",
+                        }
+        self.assertEqual(result, expected_result)
 
     @patch("eol_vimeo.vimeo_utils.logger")
     def test_move_video_exception(self, mock_logger):
