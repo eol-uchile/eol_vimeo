@@ -168,6 +168,14 @@ require(
             transcripts.settingsView.views.video_url.model.attributes.explicitly_set = true;
             transcripts.settingsView.views.video_url.model.changed.value = [video_url_input_val];
             transcripts.handleFieldChanged();
+
+            const video_id_input_val = video_id_container.find('input').val();
+            
+            // save video id in model level
+            transcripts.settingsView.views.edx_video_id.model.attributes.value = [video_id_input_val];
+            transcripts.settingsView.views.edx_video_id.model.attributes.explicitly_set = true;
+            transcripts.settingsView.views.edx_video_id.model.changed.value = [video_id_input_val];
+            transcripts.handleFieldChanged();
         });
 
         // Add update thumbnail function
