@@ -1758,7 +1758,7 @@ class TestEolVimeoView(UrlResetMixin, ModuleStoreTestCase):
             status="upload_completed",
         )
 
-        vimeo_utils.upload(
+        result = vimeo_utils.upload(
             "video_1",
             "http://localhost",
             "course-v1:test+TST+2025"
@@ -1770,6 +1770,7 @@ class TestEolVimeoView(UrlResetMixin, ModuleStoreTestCase):
             "EolVimeo - Error uploading: video_1",
             mock_logger.exception.call_args[0][0]
         )
+        self.assertEqual(result, 'Error')
 
     def test_get_link_video(self):
         """
