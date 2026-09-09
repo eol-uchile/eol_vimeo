@@ -21,7 +21,7 @@ eol_video_list = get_eol_videos_vimeo(course_id)
     "tabName": "${tabName | n, decode.utf8}",
     "courseId": "${course_id | n, decode.utf8}",
     "edx_selected_video_id": "${transcripts_basic_tab_metadata['edx_video_id']['value'] | n, decode.utf8}",
-    "eol_video_list": ${json.dumps(eol_video_list)|n, decode.utf8} }
+    "eol_video_list": ${json.dumps(eol_video_list)|n, decode.utf8}
 }
 </script>
 
