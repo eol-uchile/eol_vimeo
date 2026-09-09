@@ -122,17 +122,15 @@ require(
         const thumbnail_editor_container = editor_container.find('#eol-update-thumbnail-' + html_id + '-container');
         // video_url_input is the input field of the video url
         const video_url_input = $('#'+transcripts.settingsView.views.video_url.uniqueId);
-        // video_url_input_container is the container of the video url input field
-        const video_url_input_container = video_url_input.parent().parent().parent();
 
         // Hide update thumbnail button and show video url container
         if (pre_exists_video_id){
-            video_url_input_container.show();
+            video_url_input.prop('readonly', false);
             thumbnail_editor_container.hide();
         }
         // show update thumbnail button and hide video url container and update video url input field with the current url
         else{
-            video_url_input_container.hide();
+             video_url_input.prop('readonly', true);
             video_url_input.val(currentUrl);
             thumbnail_editor_container.show();
         }
@@ -143,13 +141,13 @@ require(
 
             // Show or hide the update thumbnail button based on if is selected a video ID and hide or show the video url input field
             if (e.target.value != ""){
-                video_url_input_container.hide();
+                video_url_input.prop('readonly', true);
                 currentUrl = getVideoUrlById(eol_video_list, e.target.value);
                 video_url_input.val(currentUrl);
                 thumbnail_editor_container.show();
             }
             else{
-                video_url_input_container.show();
+                video_url_input.prop('readonly', false);
                 thumbnail_editor_container.hide();
             }
             // Update the data-videoid attribute of the update thumbnail button with the selected video ID
