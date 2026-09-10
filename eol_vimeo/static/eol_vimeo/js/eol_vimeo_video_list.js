@@ -85,9 +85,6 @@ require(
         const thumbnail_editor_container = editor_container.find('#eol-update-thumbnail-' + html_id + '-container');
         // video_url_input is the input field of the video url
         const video_url_input = $('#'+transcripts.settingsView.views.video_url.uniqueId);
-        // set the video url input field as readonly if there is a selected video id
-        video_url_input.prop('readonly', false);
-
         // create video select
         editor_container.find('ul.list-input.settings-list').prepend(`
             <li class="field comp-setting-entry metadata_entry">
