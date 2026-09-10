@@ -94,9 +94,7 @@ require(
                 <div class="wrapper-comp-setting">
                 <label class="label setting-label">`+gettext("Select a video")+`</label>
                     <select id="eol-video-${html_id}">
-                    <option value=""}>
-                `+gettext("External video link")+`
-            </option>
+                        <option value=""}>`+gettext("External video link")+`</option>
                     </select>
                     <span class="tip setting-help">
                         `+gettext("Select a video previously uploaded to the course or insert an external link in the corresponding field.")+`
