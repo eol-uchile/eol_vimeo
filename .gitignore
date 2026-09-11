@@ -56,7 +56,6 @@ reports/
 .coveragerc
 
 # Translations
-*.mo
 *.pot
 
 # Django stuff:

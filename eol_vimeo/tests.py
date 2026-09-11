@@ -1675,6 +1675,157 @@ class TestEolVimeoView(UrlResetMixin, ModuleStoreTestCase):
         'EolVimeo - Exception: Test error' in log
         for log in cm.output))
 
+    @patch("eol_vimeo.vimeo_utils.validate_course")
+    @patch("eol_vimeo.vimeo_utils._get_video")
+    def test_get_eol_videos_vimeo_with_db(self,
+        mock_get_video,
+        mock_validate_course
+    ):
+        """
+            Test get_eol_videos_vimeo normal process
+        """
+        EolVimeoVideo.objects.create(
+            edx_video_id = "video_1",
+            user = self.user,
+            vimeo_video_id = '1122334455',
+            course_key = "course-v1:test+TST+2025",
+            url_vimeo = 'www.video/test',
+            status = 'upload_completed',
+            error_description = ''
+        )
+
+        mock_get_video.return_value = Mock(
+            client_video_id="First Video"
+        )
+        
+        mock_validate_course.return_value = True
+        
+        result = vimeo_utils.get_eol_videos_vimeo(
+            "course-v1:test+TST+2025"
+        )
+
+        expected_result = [
+            {
+                "edx_video_id": "video_1",
+                "display_name": "First Video",
+                "url_vimeo": "www.video/test"
+            }
+        ]
+        self.assertEqual(result, expected_result)
+
+
+
+    def test_get_eol_videos_vimeo_import_error(
+        self
+    ):
+        """
+            Test get_eol_videos_vimeo expected error
+        """
+        course_key = "course_test"
+        
+        with self.assertLogs('eol_vimeo.vimeo_utils', level='INFO') as cm:
+            result = vimeo_utils.get_eol_videos_vimeo(
+            course_key
+        )
+
+        self.assertTrue(any(
+        f'EolVimeo - Invalid CourseKey course_key: {course_key}.' in log
+        for log in cm.output))
+        self.assertEqual(result, [])
+
+
+    @patch("eol_vimeo.vimeo_utils.logger")
+    @patch("eol_vimeo.vimeo_utils._get_video")
+    @patch("eol_vimeo.vimeo_utils.check_credentials")
+    def test_upload_import_error(
+        self,
+        mock_check_credentials,
+        mock_get_video,
+        mock_logger,
+    ):
+        """
+            Test upload expected error
+        """
+        mock_check_credentials.return_value = True
+        mock_get_video.side_effect = ImportError("Test import error")
+
+        EolVimeoVideo.objects.create(
+            edx_video_id="video_1",
+            user=self.user,
+            vimeo_video_id="1122334455",
+            course_key="course-v1:test+TST+2025",
+            token="token123",
+            status="upload_completed",
+        )
+
+        result = vimeo_utils.upload(
+            "video_1",
+            "http://localhost",
+            "course-v1:test+TST+2025"
+        )
+
+        mock_logger.exception.assert_called_once()
+
+        self.assertIn(
+            "EolVimeo - Error uploading: video_1",
+            mock_logger.exception.call_args[0][0]
+        )
+        self.assertEqual(result, 'Error')
+
+    def test_get_link_video(self):
+        """
+            Test get_link_video normal process with
+            1. return 30 fps video
+            2. return 60 fps video
+        """
+        # Test case 1: Return 30 fps video
+        video_data = {
+            "files": [
+                {
+                    "quality": "hd",
+                    "height": 720,
+                    "fps": 30,
+                    "link": "video30.mp4",
+                }
+            ]
+        }
+        result = vimeo_utils.get_link_video(video_data)
+        assert result["link"] == "video30.mp4"
+        
+        # Test case 2: Return 60 fps video
+        video_data = {
+            "files": [
+                {
+                    "quality": "hd",
+                    "height": 720,
+                    "fps": 60,
+                    "link": "video60.mp4",
+                }
+            ]
+        }
+        result = vimeo_utils.get_link_video(video_data)
+        assert result["link"] == "video60.mp4"
+
+    @patch("eol_vimeo.vimeo_utils.logger")
+    def test_move_video_exception(self, mock_logger):
+        """
+            Test move_video expected error
+        """
+        client = Mock()
+        client.put.side_effect = ImportError("Test exception")
+
+        result = vimeo_utils.move_video(
+            client,
+            "folder_123",
+            "video_456"
+        )
+
+        self.assertFalse(result)
+
+        mock_logger.exception.assert_called_once_with(
+            "EolVimeo - Exception: Test exception"
+        )
+
 class CommandTest(TestCase):
     @patch('eol_vimeo.management.commands.vimeo_update_url_videos.update_video_vimeo')
     def test_command_discussion_notification(self,mock_update_video_vimeo):
