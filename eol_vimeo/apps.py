@@ -15,10 +15,18 @@ class EolVimeoConfig(AppConfig):
                 PluginURLs.NAMESPACE: '',
                 PluginURLs.REGEX: r'^',
                 PluginURLs.RELATIVE_PATH: 'urls_cms',
+            },
+            ProjectType.LMS: {
+                PluginURLs.NAMESPACE: '',
+                PluginURLs.REGEX: r'^',
+                PluginURLs.RELATIVE_PATH: 'urls_lms',
             }
         },
         PluginSettings.CONFIG: {
             ProjectType.CMS: {
+                SettingsType.COMMON: {
+                    PluginSettings.RELATIVE_PATH: "settings.common"}},
+            ProjectType.LMS: {
                 SettingsType.COMMON: {
                     PluginSettings.RELATIVE_PATH: "settings.common"}},
         },
