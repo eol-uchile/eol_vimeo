@@ -17,7 +17,7 @@ def package_data(pkg, roots):
 
 setup(
     name="eol_vimeo",
-    version="2.0.0",
+    version="2.1.0",
     author="Oficina EOL UChile",
     author_email="eol-ing@uchile.cl",
     description="Upload video to Vimeo",
