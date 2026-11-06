@@ -16,8 +16,6 @@ import vimeo
 
 # Edx dependencies
 from edxval.api import update_video_status, update_video, _get_video, get_video_info
-from lms.djangoapps.courseware.access import has_access
-from lms.djangoapps.courseware.courses import get_course_with_access
 from opaque_keys import InvalidKeyError
 from opaque_keys.edx.keys import CourseKey
 
@@ -48,41 +46,6 @@ def get_client_vimeo():
         secret=settings.EOL_VIMEO_CLIENT_SECRET
     )
     return client
-
-def is_course_staff(user, course_key):
-    """
-        Verify if the user is staff course
-    """
-    try:
-        course = get_course_with_access(user, "load", course_key)
-        return bool(has_access(user, 'staff', course))
-    except Exception:
-        return False
-
-def is_instructor(user, course_key):
-    """
-        Verify if the user is instructor
-    """
-    try:
-        course = get_course_with_access(user, "load", course_key)
-        return bool(has_access(user, 'instructor', course))
-    except Exception:
-        return False
-
-def validate_user(user, course_id):
-    """
-        Verify if the user have permission
-    """
-    access = False
-    course_key = CourseKey.from_string(course_id)
-    if not user.is_anonymous:
-        if user.is_staff:
-            access = True
-        if is_instructor(user, course_key):
-            access = True
-        if is_course_staff(user, course_key):
-            access = True
-    return access
 
 def validate_course(id_curso):
     """
@@ -156,28 +119,6 @@ def get_video_vimeo(id_video):
     except Exception as e:
         logger.exception('EolVimeo - Exception: %s' % str(e))
         return {}
-
-def update_image(edx_video_id, course_key):
-    """
-        Update video picture from vimeo
-    """
-    video_vimeo = EolVimeoVideo.objects.get(edx_video_id=edx_video_id, course_key=course_key)
-    client = get_client_vimeo()
-    if client is None:
-        return {'result':'error', 'error':'Credentials are not defined'}
-    try:
-        response = client.get('/videos/{}'.format(video_vimeo.vimeo_video_id), params={"fields": "pictures"})
-        if response.status_code == 200:
-            data = response.json()
-            video_vimeo.url_picture = data['pictures']['base_link']
-            video_vimeo.save()
-            return {'result':'success'}
-        else:
-            logger.info('EolVimeo - The video does not exists, id_video_vimeo:{}, response: {}'.format(edx_video_id, response.text))
-            return {'result':'error', 'error':'The video does not exists'}
-    except Exception as e:
-        logger.exception('EolVimeo - Exception: %s' % str(e))
-        return {'result':'error', 'error':'Error update video picture'}
 
 def move_to_folder(id_video, id_folder):
     """
@@ -482,5 +423,3 @@ def get_eol_videos_vimeo( course_key ):
         aux = _get_video(video['edx_video_id'])
         video_list.append({'edx_video_id': video['edx_video_id'], 'display_name': aux.client_video_id, 'url_vimeo':video['url_vimeo']})
     return video_list
-
-
