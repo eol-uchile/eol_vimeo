@@ -354,6 +354,7 @@ def update_video_vimeo(course_id=None):
                         quality_video = get_link_video(video_data)
                         now = timezone.now()
                         video_name = video_data['name'].replace('{}_'.format(str(video.course_key)), '')
+                        video.title = video_name[:255]
                         if quality_video is not None:
                             if quality_video['quality'] == 'hls':
                                 status_video = 'upload_completed'
@@ -418,8 +419,7 @@ def get_eol_videos_vimeo( course_key ):
         return []
     update_video_vimeo(str(course_key))
     video_list = []
-    vimeo_list = EolVimeoVideo.objects.filter(course_key=course_key, status='upload_completed').values('edx_video_id','url_vimeo')
+    vimeo_list = EolVimeoVideo.objects.filter(course_key=course_key, status='upload_completed').values('edx_video_id', 'title', 'url_vimeo')
     for video in vimeo_list:
-        aux = _get_video(video['edx_video_id'])
-        video_list.append({'edx_video_id': video['edx_video_id'], 'display_name': aux.client_video_id, 'url_vimeo':video['url_vimeo']})
+        video_list.append({'edx_video_id': video['edx_video_id'], 'display_name': video['title'] or video['edx_video_id'], 'url_vimeo':video['url_vimeo']})
     return video_list
