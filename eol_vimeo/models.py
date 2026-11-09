@@ -27,6 +27,7 @@ class EolVimeoVideo(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     vimeo_video_id = models.CharField(max_length=50, blank=True)
     course_key = CourseKeyField(max_length=255, default=None, blank=True)
+    title = models.CharField(max_length=255, blank=True, default='')
     url_vimeo = models.CharField(max_length=255, blank=True)
     url_picture = models.CharField(max_length=255, blank=True, default='')
     status = models.CharField(max_length=50, blank=True)
