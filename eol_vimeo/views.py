@@ -7,6 +7,7 @@ import boto3
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.utils import timezone
+from django.views.decorators.http import require_http_methods
 
 # Edx dependencies
 from cms.djangoapps.contentstore.views import videos
@@ -15,7 +16,8 @@ from opaque_keys.edx.keys import CourseKey
 
 # Internal project dependencies
 from eol_vimeo.models import EolVimeoVideo
-from eol_vimeo.vimeo_utils import update_image, validate_course, validate_user
+from eol_vimeo.vimeo_utils import validate_course, validate_user
+from eol_vimeo.thumbnail import update_image
 
 logger = logging.getLogger(__name__)
 
@@ -42,28 +44,22 @@ def vimeo_callback(request):
     upload_url = get_url_video(edx_video_id)
     return HttpResponseRedirect(upload_url)
 
-def vimeo_update_picture(request):
+@require_http_methods(['GET'])
+def vimeo_update_thumbnail(request, vimeo_id):
     """
-        Update video picture
+        Update video thumbnail
     """
-    if request.method != "POST":
-        logger.error("EolVimeo - Wrong Method")
+    if not request.user.is_authenticated:
+        return JsonResponse({'error': 'authentication required'}, status=401)
+    videos = EolVimeoVideo.objects.filter(vimeo_video_id=vimeo_id, status='upload_completed')
+    if not videos.exists():
+        logger.error("EolVimeo - Video associated to that Vimeo id have problem or status is not upload_completed, check model, vimeo_id: {}".format(vimeo_id))
         return HttpResponse(status=400)
-    edx_video_id = request.POST.get('videoid', '')
-    course_id = request.POST.get('course_id', '')
-    try:
-        course_key = CourseKey.from_string(course_id)
-    except InvalidKeyError:
-        logger.error("EolVimeo - Wrong course id: {}".format(course_id))
-        return HttpResponse(status=400)
-    if not validate_course(course_id):
-       logger.error("EolVimeo - error validate course, invalid format: {}".format(course_id))
-    if not validate_user(request.user, course_id):
-       logger.error("EolVimeo - user dont have permission, user: {}, course: {}".format(request.user, course_id))
-    if not EolVimeoVideo.objects.filter(edx_video_id=edx_video_id, course_key=course_key, status='upload_completed').exists():
-        logger.error("EolVimeo - Video id have problem or status is not upload_completed, check model, edx_video_id: {}, course_id: {}".format(edx_video_id, course_id))
-        return HttpResponse(status=400)
-    response = update_image(edx_video_id, course_key)
+    course_ids = set(str(course_key) for course_key in videos.values_list('course_key', flat=True))
+    if not any(validate_user(request.user, course_id) for course_id in course_ids):
+        logger.error("EolVimeo - user dont have permission, user: {}, vimeo_id: {}".format(request.user, vimeo_id))
+        return HttpResponse(status=403)
+    response = update_image(vimeo_id)
     return JsonResponse(response)
 
 def get_url_video(edx_video_id):

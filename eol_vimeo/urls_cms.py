@@ -1,7 +1,7 @@
 from django.conf.urls import url
 
 # Internal project dependencies
-from .views import vimeo_callback, vimeo_update_picture
+from .views import vimeo_callback, vimeo_update_thumbnail
 from .views_lms import vimeo_thumbnail
 
 urlpatterns = (
@@ -11,9 +11,9 @@ urlpatterns = (
         name='vimeo_callback',
     ),
     url(
-        r'^eolvimeo/update_picture',
-        vimeo_update_picture,
-        name='vimeo_update_picture',
+        r'^eolvimeo/update_thumbnail/(?P<vimeo_id>\d+)',
+        vimeo_update_thumbnail,
+        name='vimeo_update_thumbnail',
     ),
     # For preview in Studio
     url(

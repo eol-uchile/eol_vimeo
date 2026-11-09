@@ -156,29 +156,7 @@ def get_video_vimeo(id_video):
     except Exception as e:
         logger.exception('EolVimeo - Exception: %s' % str(e))
         return {}
-
-def update_image(edx_video_id, course_key):
-    """
-        Update video picture from vimeo
-    """
-    video_vimeo = EolVimeoVideo.objects.get(edx_video_id=edx_video_id, course_key=course_key)
-    client = get_client_vimeo()
-    if client is None:
-        return {'result':'error', 'error':'Credentials are not defined'}
-    try:
-        response = client.get('/videos/{}'.format(video_vimeo.vimeo_video_id), params={"fields": "pictures"})
-        if response.status_code == 200:
-            data = response.json()
-            video_vimeo.url_picture = data['pictures']['base_link']
-            video_vimeo.save()
-            return {'result':'success'}
-        else:
-            logger.info('EolVimeo - The video does not exists, id_video_vimeo:{}, response: {}'.format(edx_video_id, response.text))
-            return {'result':'error', 'error':'The video does not exists'}
-    except Exception as e:
-        logger.exception('EolVimeo - Exception: %s' % str(e))
-        return {'result':'error', 'error':'Error update video picture'}
-
+    
 def move_to_folder(id_video, id_folder):
     """
         Check if main folder exists in vimeo to move the video there
