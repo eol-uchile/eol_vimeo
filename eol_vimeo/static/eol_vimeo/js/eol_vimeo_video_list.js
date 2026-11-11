@@ -48,9 +48,6 @@ require(
 
         const editor_container = transcripts.$el;
         const video_url_view = transcripts.settingsView.views.video_url; // este campo es el html5_sources
-        const video_id_view = transcripts.settingsView.views.edx_video_id;
-        const video_id_container = video_id_view.$el;
-        video_id_container.hide();
 
         function setFieldValue(view, value) {
             view.model.attributes.value = value;
@@ -83,7 +80,7 @@ require(
 
         // create html thumbnail start as hide
         thumbnail_editor_html = `
-        <li class="field comp-setting-entry metadata_entry" id="eol-update-thumbnail-${html_id}-container" style="display: none;">
+        <li class="field comp-setting-entry metadata_entry is-set" id="eol-update-thumbnail-${html_id}-container" style="display: none;">
             <div class="wrapper-comp-setting">
                 <label class="label setting-label">`+gettext("Update thumbnail from Vimeo")+`</label>
                 <button id="eol-update-${html_id}" class="action setting-upload update-vimeo" type="button" data-tooltip="`+gettext("Update")+`" value="`+gettext("Update")+`">`+gettext("Update")+`</button>
@@ -160,15 +157,6 @@ require(
             video_url_input.val(video_url);
             video_url_input.trigger('change');
             setFieldValue(video_url_view, video_url ? [video_url] : []);
-
-            // Cut the old relation with edxval: if the block points to an eol_vimeo edx_video_id, clear it.
-            // Any other edx_video_id is kept (e.g. the "external video" Studio creates to store transcripts).
-            const current_video_id = (video_id_container.find('input').val() || '').trim();
-            if (current_video_id && eol_edx_video_ids.indexOf(current_video_id) !== -1) {
-                video_id_container.find('input').val('');
-                video_id_container.find('input').trigger('change');
-                setFieldValue(video_id_view, '');
-            }
         });
         
         function updateVimeoThumb(vimeo_id) {
